@@ -7,7 +7,14 @@ license = "Apache-2.0"
 authors = ["Yang Chen <matthiasychen@gmail.com>"]
 homepage = "https://github.com/matthiascy/sifr"
 repository = "https://github.com/matthiascy/sifr"
-description = "Vectorization library"
+description = "A linear algebra and math library for games and graphics."
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+[features]
+default = ["simd"]
+simd = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

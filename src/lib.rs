@@ -1,7 +1,9 @@
 #![feature(specialization)]
 #![feature(associated_type_defaults)]
+#![feature(generic_associated_types)]
 #![feature(decl_macro)]
 #![feature(stdsimd)]
+#![feature(type_name_of_val)]
 
 mod core;
 mod simd;
@@ -12,16 +14,14 @@ pub mod prelude {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::Array;
+    use crate::core::ArrayBase;
+    use std::ops::{Deref, Index};
 
     #[test]
     fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-        let _a: Array<f32, 10> = Array::new();
-        let _a: Array<f32, 9> = Array::new();
-        let _b: Array<f32, 8> = Array::new();
-        let _c: Array<f64, 7> = Array::new();
-        let _c: Array<f64, 6> = Array::new();
+        let a: ArrayBase<f32, 32, false> = ArrayBase::new();
+
+        // println!("{}", std::any::type_name::<<<ArrayStorage<f64, 6_usize> as ArrayStorageVariant>::Variant as Index<usize>>::Output>());
+        println!("{}", a.inner[10]);
     }
 }

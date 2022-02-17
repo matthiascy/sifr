@@ -13,4 +13,4 @@ pub struct I32x8(x86_64::__m256i);
 
 pub struct I64x4(x86_64::__m256i);
 
-impl_nd_array_base!(F32x8, F64x4, I8x32, I16x16, I32x8, I64x4);
+// impl_nd_array_base!(F32x8, F64x4, I8x32, I16x16, I32x8, I64x4);

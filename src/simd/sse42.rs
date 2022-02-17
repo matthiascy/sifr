@@ -3,6 +3,7 @@ use crate::impl_nd_array_base;
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 
+use crate::core::NdArrayBase;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
@@ -18,8 +19,4 @@ pub struct I32x4(__m128i);
 
 pub struct I64x2(__m128i);
 
-impl_nd_array_base!(F32x4, F64x2, I8x16, I32x4, I64x2);
-
-impl __m128 {
-
-}
+// impl_nd_array_base!(F32x4, F64x2, I8x16, I32x4, I64x2);

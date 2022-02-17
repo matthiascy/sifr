@@ -2,11 +2,15 @@
 pub mod macros;
 
 mod array;
+mod array_dyn;
 mod base;
 mod storage;
+mod storage_dyn;
 mod traits;
 
-pub use array::Array;
-pub use base::ArrayBase;
-pub use storage::{ArrayStorage, ArrayStorageVariant};
-pub use traits::NdArrayBase;
+pub use array::*;
+pub use array_dyn::*;
+pub use base::*;
+pub use storage::*;
+pub use storage_dyn::*;
+pub use traits::*;

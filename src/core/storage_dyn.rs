@@ -22,7 +22,7 @@ impl<T> IndexMut<usize> for DynamicStorage<T> {
 }
 
 impl<T> NdArrayBase for DynamicStorage<T> {
-    type ElemType = T;
+    type Value = T;
     type Iter<'a>
     where
         T: 'a,

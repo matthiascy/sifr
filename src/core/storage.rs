@@ -1,9 +1,6 @@
 use crate::core::traits::NdArrayBase;
-use crate::simd;
 use core::marker::PhantomData;
-use std::array::IntoIter;
-use std::fmt::Debug;
-use std::ops::{Deref, DerefMut, Index, IndexMut};
+use std::ops::{Index, IndexMut};
 
 pub struct StaticStorage<T, const N: usize> {
     data: [T; N],
@@ -25,7 +22,7 @@ impl<T, const N: usize> IndexMut<usize> for StaticStorage<T, N> {
 }
 
 impl<T, const N: usize> NdArrayBase for StaticStorage<T, N> {
-    type ElemType = T;
+    type Value = T;
     type Iter<'a>
     where
         T: 'a,
@@ -34,7 +31,7 @@ impl<T, const N: usize> NdArrayBase for StaticStorage<T, N> {
     where
         T: 'a,
     = core::slice::IterMut<'a, T>;
-    type IntoIter = core::array::IntoIter<Self::ElemType, N>;
+    type IntoIter = core::array::IntoIter<Self::Value, N>;
 
     fn new() -> Self {
         Self {
@@ -73,7 +70,7 @@ impl<T> IndexMut<usize> for UnreachableStorage<T> {
 }
 
 impl<T> NdArrayBase for UnreachableStorage<T> {
-    type ElemType = T;
+    type Value = T;
     type Iter<'a>
     where
         T: 'a,

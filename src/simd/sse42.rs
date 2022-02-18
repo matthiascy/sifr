@@ -3,7 +3,6 @@ use crate::impl_nd_array_base;
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 
-use crate::core::NdArrayBase;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 

@@ -1,5 +1,5 @@
 use crate::core::traits::{ArrayStorage, NdArrayBase, NdArrayDepth};
-use crate::core::{DynamicStorage, StaticStorage, UnreachableStorage};
+use crate::core::{ArrayScalarType, DynamicStorage, StaticStorage, UnreachableStorage};
 use core::marker::PhantomData;
 use core::ops::Deref;
 use std::ops::DerefMut;
@@ -79,6 +79,11 @@ impl<'a, T, const N: usize, const D: bool> IntoIterator for &'a mut ArrayBase<T,
 
 impl<T, const N: usize, const D: bool> NdArrayDepth for ArrayBase<T, N, D> {
     const ARRAY_DEPTH: usize = <T as NdArrayDepth>::ARRAY_DEPTH + 1;
+}
+
+impl<T, const N: usize, const D: bool> ArrayScalarType for ArrayBase<T, N, D> {
+    // type Scalar = <<T as Decay>::Type as ScalarType>::Scalar;
+    type Scalar = <T as ArrayScalarType>::Scalar;
 }
 
 // // 128-bit single/double-precision floating numbers
@@ -224,11 +229,11 @@ impl<T, const N: usize, const D: bool> NdArrayDepth for ArrayBase<T, N, D> {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::{ArrayBase, ArrayStorage, DynamicStorage, StaticStorage};
+    use crate::core::{ArrayBase, DynamicStorage, NdArrayDepth, ArrayScalarType, StaticStorage, NdArrayBase};
+    use core::any::{type_name, type_name_of_val};
 
     #[test]
     fn array_base_new() {
-        use core::any::{type_name, type_name_of_val};
 
         let a: ArrayBase<u32, 4, false> = ArrayBase::new();
         let b: ArrayBase<f32, 10, true> = ArrayBase::new();
@@ -241,6 +246,21 @@ mod tests {
             type_name::<DynamicStorage<f32>>(),
             type_name_of_val(&b.inner)
         );
+    }
+
+    #[test]
+    fn array_base_scalar_type() {
+        assert_ne!(type_name::<<ArrayBase<ArrayBase<u32, 4, false>, 4, false> as ArrayScalarType>::Scalar>(),
+                   type_name::<<ArrayBase<ArrayBase<ArrayBase<f32, 4, true>, 4, false>, 4, false> as ArrayScalarType>::Scalar>());
+
+        assert_eq!(type_name::<<ArrayBase<ArrayBase<f32, 4, false>, 4, false> as ArrayScalarType>::Scalar>(),
+                   type_name::<<ArrayBase<ArrayBase<ArrayBase<f32, 4, true>, 4, false>, 4, false> as ArrayScalarType>::Scalar>());
+    }
+
+    #[test]
+    fn array_base_depth() {
+        assert_eq!(<ArrayBase<ArrayBase<ArrayBase<f32, 4, true>, 4, false>, 4, false> as NdArrayDepth>::ARRAY_DEPTH,
+            <ArrayBase<ArrayBase<ArrayBase<f32, 2, true>, 1, false>, 3, false> as NdArrayDepth>::ARRAY_DEPTH);
     }
 
     fn array_base_indexing() {}

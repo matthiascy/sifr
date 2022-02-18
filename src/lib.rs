@@ -15,7 +15,6 @@ pub mod prelude {
 #[cfg(test)]
 mod tests {
     use crate::core::ArrayBase;
-    use std::ops::{Deref, Index};
 
     #[test]
     fn it_works() {

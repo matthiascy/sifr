@@ -1,7 +1,7 @@
 use crate::core::traits::{ArrayStorage, NdArrayBase, NdArrayDepth};
 use crate::core::{DynamicStorage, StaticStorage, UnreachableStorage};
 use core::marker::PhantomData;
-use core::ops::{Deref};
+use core::ops::Deref;
 use std::ops::DerefMut;
 
 pub struct ArrayBase<T, const N: usize, const D: bool>
@@ -16,7 +16,7 @@ impl<T, const N: usize, const D: bool> ArrayStorage<T> for ArrayBase<T, N, D> {
     default type StorageVariant = UnreachableStorage<T>;
 }
 
-impl<T> ArrayStorage<T> for ArrayBase<T, 0, true> {
+impl<T, const N: usize> ArrayStorage<T> for ArrayBase<T, N, true> {
     default type StorageVariant = DynamicStorage<T>;
 }
 
@@ -27,7 +27,7 @@ impl<T, const N: usize> ArrayStorage<T> for ArrayBase<T, N, false> {
 impl<T, const N: usize, const D: bool> ArrayBase<T, N, D> {
     pub fn new() -> Self {
         Self {
-            inner: <<Self as ArrayStorage<T>>::StorageVariant as NdArrayBase<T>>::new(),
+            inner: <<Self as ArrayStorage<T>>::StorageVariant as NdArrayBase>::new(),
             _marker: Default::default(),
         }
     }
@@ -50,7 +50,7 @@ impl<T, const N: usize, const D: bool> DerefMut for ArrayBase<T, N, D> {
 impl<T, const N: usize, const D: bool> IntoIterator for ArrayBase<T, N, D> {
     type Item = T;
     type IntoIter =
-        <<ArrayBase<T, N, D> as ArrayStorage<T>>::StorageVariant as NdArrayBase<T>>::IntoIter;
+        <<ArrayBase<T, N, D> as ArrayStorage<T>>::StorageVariant as NdArrayBase>::IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
         self.inner.into_iter()
@@ -60,7 +60,7 @@ impl<T, const N: usize, const D: bool> IntoIterator for ArrayBase<T, N, D> {
 impl<'a, T, const N: usize, const D: bool> IntoIterator for &'a ArrayBase<T, N, D> {
     type Item = &'a T;
     type IntoIter =
-        <<ArrayBase<T, N, D> as ArrayStorage<T>>::StorageVariant as NdArrayBase<T>>::Iter<'a>;
+        <<ArrayBase<T, N, D> as ArrayStorage<T>>::StorageVariant as NdArrayBase>::Iter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.inner.iter()
@@ -70,7 +70,7 @@ impl<'a, T, const N: usize, const D: bool> IntoIterator for &'a ArrayBase<T, N, 
 impl<'a, T, const N: usize, const D: bool> IntoIterator for &'a mut ArrayBase<T, N, D> {
     type Item = &'a mut T;
     type IntoIter =
-        <<ArrayBase<T, N, D> as ArrayStorage<T>>::StorageVariant as NdArrayBase<T>>::IterMut<'a>;
+        <<ArrayBase<T, N, D> as ArrayStorage<T>>::StorageVariant as NdArrayBase>::IterMut<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.inner.iter_mut()
@@ -221,3 +221,34 @@ impl<T, const N: usize, const D: bool> NdArrayDepth for ArrayBase<T, N, D> {
 // impl ArrayStorageVariant for ArrayStorage<f64, 5> {
 //     type Variant = simd::avx512::F64x8;
 // }
+
+#[cfg(test)]
+mod tests {
+    use crate::core::{ArrayBase, ArrayStorage, DynamicStorage, StaticStorage};
+
+    #[test]
+    fn array_base_new() {
+        use core::any::{type_name, type_name_of_val};
+
+        let a: ArrayBase<u32, 4, false> = ArrayBase::new();
+        let b: ArrayBase<f32, 10, true> = ArrayBase::new();
+
+        assert_eq!(
+            type_name::<StaticStorage<u32, 4>>(),
+            type_name_of_val(&a.inner)
+        );
+        assert_eq!(
+            type_name::<DynamicStorage<f32>>(),
+            type_name_of_val(&b.inner)
+        );
+    }
+
+    fn array_base_indexing() {}
+
+    fn array_base_iter() {
+    }
+
+    fn array_base_into_iter() {}
+
+    fn array_base_iter_mut() {}
+}

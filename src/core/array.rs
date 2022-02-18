@@ -46,7 +46,7 @@ mod tests {
     use crate::core::NdArrayBase;
 
     #[test]
-    fn array_new_constructor() {
+    fn array_new() {
         let a: Array<u32, 8> = Array::new();
         for e in a.iter() {
             assert_eq!(e, &0);
@@ -54,7 +54,14 @@ mod tests {
     }
 
     #[test]
-    fn array_underlying_storage() {
-        let a: Array<u32, 4> = Array::new();
+    fn array_iter_mut() {
+        let mut a = Array::<u32, 12>::new();
+        for e in a.iter_mut() {
+            *e = 1;
+        }
+
+        for e in a.iter() {
+            assert_eq!(e, &1);
+        }
     }
 }

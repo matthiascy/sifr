@@ -21,8 +21,8 @@ impl<T> IndexMut<usize> for DynamicStorage<T> {
     }
 }
 
-impl<T> NdArrayBase<T> for DynamicStorage<T> {
-    type IntoIter = std::vec::IntoIter<T>;
+impl<T> NdArrayBase for DynamicStorage<T> {
+    type ElemType = T;
     type Iter<'a>
     where
         T: 'a,
@@ -31,9 +31,9 @@ impl<T> NdArrayBase<T> for DynamicStorage<T> {
     where
         T: 'a,
     = core::slice::IterMut<'a, T>;
+    type IntoIter = std::vec::IntoIter<T>;
 
     fn new() -> Self {
-        println!("dynamic array new");
         Self {
             data: vec![],
             _marker: Default::default(),

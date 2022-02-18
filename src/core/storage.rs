@@ -1,4 +1,4 @@
-use crate::core::traits::{NdArrayBase};
+use crate::core::traits::NdArrayBase;
 use crate::simd;
 use core::marker::PhantomData;
 use std::array::IntoIter;
@@ -24,8 +24,8 @@ impl<T, const N: usize> IndexMut<usize> for StaticStorage<T, N> {
     }
 }
 
-impl<T, const N: usize> NdArrayBase<T> for StaticStorage<T, N> {
-    type IntoIter = core::array::IntoIter<T, N>;
+impl<T, const N: usize> NdArrayBase for StaticStorage<T, N> {
+    type ElemType = T;
     type Iter<'a>
     where
         T: 'a,
@@ -34,9 +34,9 @@ impl<T, const N: usize> NdArrayBase<T> for StaticStorage<T, N> {
     where
         T: 'a,
     = core::slice::IterMut<'a, T>;
+    type IntoIter = core::array::IntoIter<Self::ElemType, N>;
 
     fn new() -> Self {
-        println!("static array new");
         Self {
             data: unsafe { ::core::mem::zeroed::<[T; N]>() },
             _marker: Default::default(),
@@ -72,8 +72,8 @@ impl<T> IndexMut<usize> for UnreachableStorage<T> {
     }
 }
 
-impl<T> NdArrayBase<T> for UnreachableStorage<T> {
-    type IntoIter = core::array::IntoIter<T, 0>;
+impl<T> NdArrayBase for UnreachableStorage<T> {
+    type ElemType = T;
     type Iter<'a>
     where
         T: 'a,
@@ -82,6 +82,7 @@ impl<T> NdArrayBase<T> for UnreachableStorage<T> {
     where
         T: 'a,
     = core::slice::IterMut<'a, T>;
+    type IntoIter = core::array::IntoIter<T, 0>;
 
     fn new() -> Self {
         unreachable!();

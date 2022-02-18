@@ -1,19 +1,22 @@
 use std::ops::{Index, IndexMut};
 
 pub trait ArrayStorage<T> {
-    type StorageVariant: NdArrayBase<T>;
+    type StorageVariant: NdArrayBase<ElemType = T>;
 }
 
-pub trait NdArrayBase<T>: Index<usize, Output = T> + IndexMut<usize, Output = T> {
-    type IntoIter: Iterator<Item = T>;
-    type Iter<'a>: Iterator<Item = &'a T>
+pub trait NdArrayBase:
+    Index<usize, Output = Self::ElemType> + IndexMut<usize, Output = Self::ElemType>
+{
+    type ElemType;
+    type Iter<'a>: Iterator<Item = &'a Self::ElemType>
     where
         Self: 'a,
-        T: 'a;
-    type IterMut<'a>: Iterator<Item = &'a mut T>
+        Self::ElemType: 'a;
+    type IterMut<'a>: Iterator<Item = &'a mut Self::ElemType>
     where
         Self: 'a,
-        T: 'a;
+        Self::ElemType: 'a;
+    type IntoIter: Iterator<Item = Self::ElemType>;
 
     fn new() -> Self;
 

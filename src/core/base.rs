@@ -1,8 +1,8 @@
 use crate::core::traits::{ArrayStorage, NdArrayBase, NdArrayDepth};
-use crate::core::{ArrayScalarType, DynamicStorage, StaticStorage, UnreachableStorage};
+use crate::core::{DynamicStorage, NdArrayBaseOps, ScalarType, StaticStorage, UnreachableStorage};
 use core::marker::PhantomData;
 use core::ops::Deref;
-use std::ops::DerefMut;
+use std::ops::{Add, DerefMut};
 
 pub struct ArrayBase<T, const N: usize, const D: bool>
 where
@@ -16,11 +16,11 @@ impl<T, const N: usize, const D: bool> ArrayStorage<T> for ArrayBase<T, N, D> {
     default type StorageVariant = UnreachableStorage<T>;
 }
 
-impl<T, const N: usize> ArrayStorage<T> for ArrayBase<T, N, true> {
+impl<T: Add<Output = T>, const N: usize> ArrayStorage<T> for ArrayBase<T, N, true> {
     default type StorageVariant = DynamicStorage<T>;
 }
 
-impl<T, const N: usize> ArrayStorage<T> for ArrayBase<T, N, false> {
+impl<T: Add<Output = T>, const N: usize> ArrayStorage<T> for ArrayBase<T, N, false> {
     default type StorageVariant = StaticStorage<T, N>;
 }
 
@@ -81,10 +81,45 @@ impl<T, const N: usize, const D: bool> NdArrayDepth for ArrayBase<T, N, D> {
     const ARRAY_DEPTH: usize = <T as NdArrayDepth>::ARRAY_DEPTH + 1;
 }
 
-impl<T, const N: usize, const D: bool> ArrayScalarType for ArrayBase<T, N, D> {
+impl<T, const N: usize, const D: bool> ScalarType for ArrayBase<T, N, D> {
     // type Scalar = <<T as Decay>::Type as ScalarType>::Scalar;
-    type Scalar = <T as ArrayScalarType>::Scalar;
+    type Scalar = <T as ScalarType>::Scalar;
 }
+
+impl<T: Add<Output = T> + Copy, const N: usize, const D: bool> Add for ArrayBase<T, N, D> {
+    type Output = ArrayBase<T, N, D>;
+
+    default fn add(self, rhs: Self) -> Self::Output {
+        ArrayBase {
+            inner: <<Self as ArrayStorage<T>>::StorageVariant as NdArrayBase>::add(self.inner, rhs.inner),
+            _marker: Default::default()
+        }
+    }
+}
+
+// // static + dynamic
+// impl<T: Add<Output = T> + Copy, const N: usize> Add<ArrayBase<T, N, true>> for ArrayBase<T, N, false> {
+//     type Output = ArrayBase<T, N, false>;
+//
+//     fn add(self, rhs: Self) -> Self::Output {
+//         ArrayBase {
+//             inner: <<Self as ArrayStorage<T>>::StorageVariant as NdArrayBase>::add(self.inner, rhs.inner),
+//             _marker: Default::default()
+//         }
+//     }
+// }
+//
+// // dynamic + static
+// impl<T: Add<Output = T> + Copy, const N: usize> Add<ArrayBase<T, N, false>> for ArrayBase<T, N, true> {
+//     type Output = ArrayBase<T, N, true>;
+//
+//     fn add(self, rhs: Self) -> Self::Output {
+//         ArrayBase {
+//             inner: <<Self as ArrayStorage<T>>::StorageVariant as NdArrayBase>::add(self.inner, rhs.inner),
+//             _marker: Default::default()
+//         }
+//     }
+// }
 
 // // 128-bit single/double-precision floating numbers
 // #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -229,12 +264,11 @@ impl<T, const N: usize, const D: bool> ArrayScalarType for ArrayBase<T, N, D> {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::{ArrayBase, DynamicStorage, NdArrayDepth, ArrayScalarType, StaticStorage, NdArrayBase};
+    use crate::core::{Array, ArrayBase, DynamicStorage, NdArrayBase, NdArrayDepth, ScalarType, StaticStorage};
     use core::any::{type_name, type_name_of_val};
 
     #[test]
     fn array_base_new() {
-
         let a: ArrayBase<u32, 4, false> = ArrayBase::new();
         let b: ArrayBase<f32, 10, true> = ArrayBase::new();
 
@@ -250,11 +284,11 @@ mod tests {
 
     #[test]
     fn array_base_scalar_type() {
-        assert_ne!(type_name::<<ArrayBase<ArrayBase<u32, 4, false>, 4, false> as ArrayScalarType>::Scalar>(),
-                   type_name::<<ArrayBase<ArrayBase<ArrayBase<f32, 4, true>, 4, false>, 4, false> as ArrayScalarType>::Scalar>());
+        assert_ne!(type_name::<<ArrayBase<ArrayBase<u32, 4, false>, 4, false> as ScalarType>::Scalar>(),
+                   type_name::<<ArrayBase<ArrayBase<ArrayBase<f32, 4, true>, 4, false>, 4, false> as ScalarType>::Scalar>());
 
-        assert_eq!(type_name::<<ArrayBase<ArrayBase<f32, 4, false>, 4, false> as ArrayScalarType>::Scalar>(),
-                   type_name::<<ArrayBase<ArrayBase<ArrayBase<f32, 4, true>, 4, false>, 4, false> as ArrayScalarType>::Scalar>());
+        assert_eq!(type_name::<<ArrayBase<ArrayBase<f32, 4, false>, 4, false> as ScalarType>::Scalar>(),
+                   type_name::<<ArrayBase<ArrayBase<ArrayBase<f32, 4, true>, 4, false>, 4, false> as ScalarType>::Scalar>());
     }
 
     #[test]
@@ -263,10 +297,26 @@ mod tests {
             <ArrayBase<ArrayBase<ArrayBase<f32, 2, true>, 1, false>, 3, false> as NdArrayDepth>::ARRAY_DEPTH);
     }
 
+    #[test]
+    fn array_base_add() {
+        let mut a: ArrayBase<u32, 8, false> = ArrayBase::new();
+        let mut b: ArrayBase<u32, 8, false> = ArrayBase::new();
+
+        for i in 0..8 {
+            a[i] = i as u32;
+            b[i] = i as u32;
+        }
+
+        let c = a + b;
+
+        for i in 0..8 {
+            assert_eq!(c[i], (i * 2) as u32);
+        }
+    }
+
     fn array_base_indexing() {}
 
-    fn array_base_iter() {
-    }
+    fn array_base_iter() {}
 
     fn array_base_into_iter() {}
 

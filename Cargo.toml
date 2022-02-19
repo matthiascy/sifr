@@ -13,7 +13,7 @@ description = "A linear algebra and math library for games and graphics."
 maintenance = { status = "actively-developed" }
 
 [features]
-default = ["simd"]
+default = []
 simd = []
 wasm = []
 cuda = []

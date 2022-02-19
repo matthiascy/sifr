@@ -1,6 +1,6 @@
 use crate::core::traits::NdArrayDepth;
-use crate::core::{ArrayBase, DesugaredArrayType, NdArray, ArrayScalarType, NdArrayBase, ArrayStorage};
-use std::ops::{Deref, DerefMut};
+use crate::core::{ArrayBase, ArrayStorage, DesugaredArrayType, NdArray, NdArrayBase, ScalarType};
+use std::ops::{Add, Deref, DerefMut};
 
 pub struct Array<T, const N: usize>(pub(crate) ArrayBase<T, N, false>);
 
@@ -73,13 +73,21 @@ impl<'a, T, const N: usize> IntoIterator for &'a mut Array<T, N> {
 
 impl<T, const N: usize> NdArray for Array<T, N> {
     type Value = T;
-    type Scalar = <<T as DesugaredArrayType>::Desugared as ArrayScalarType>::Scalar;
+    type Scalar = <<T as DesugaredArrayType>::Desugared as ScalarType>::Scalar;
+}
+
+impl<T: Add<Output = T> + Copy, const N: usize> Add for Array<T, N> {
+    type Output = Array<T, N>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Array(self.0 + rhs.0)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Array;
-    use crate::core::{NdArray};
+    use crate::core::{ArrayBase, NdArray};
     use core::any::type_name;
 
     #[test]
@@ -104,9 +112,30 @@ mod tests {
 
     #[test]
     fn array_scalar_type() {
-        assert_eq!(type_name::<<Array<u32, 12> as NdArray>::Scalar>(),
-                   type_name::<<Array<Array<u32, 4>, 4> as NdArray>::Scalar>());
-        assert_ne!(type_name::<<Array<Array<f32, 4>, 12> as NdArray>::Scalar>(),
-                   type_name::<<Array<Array<u32, 4>, 4> as NdArray>::Scalar>());
+        assert_eq!(
+            type_name::<<Array<u32, 12> as NdArray>::Scalar>(),
+            type_name::<<Array<Array<u32, 4>, 4> as NdArray>::Scalar>()
+        );
+        assert_ne!(
+            type_name::<<Array<Array<f32, 4>, 12> as NdArray>::Scalar>(),
+            type_name::<<Array<Array<u32, 4>, 4> as NdArray>::Scalar>()
+        );
+    }
+
+    #[test]
+    fn array_add() {
+        let mut a: Array<u32, 4> = Array::new();
+        let mut b: Array<u32, 4> = Array::new();
+        for e in &mut a {
+            *e = 1;
+        }
+        for e in &mut b {
+            *e = 10;
+        }
+
+        let c = a + b;
+        for e in &c {
+            assert_eq!(e, &11);
+        }
     }
 }

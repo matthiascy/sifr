@@ -1,10 +1,16 @@
 use crate::core::traits::NdArrayBase;
 use std::marker::PhantomData;
-use std::ops::{Index, IndexMut};
+use std::ops::{Add, Index, IndexMut};
+use std::process::Output;
+use crate::core::{NdArrayBaseOps, ScalarType};
 
 pub struct DynamicStorage<T> {
     data: Vec<T>,
     _marker: PhantomData<T>,
+}
+
+impl<T> ScalarType for DynamicStorage<T> {
+    type Scalar = <T as ScalarType>::Scalar;
 }
 
 impl<T> Index<usize> for DynamicStorage<T> {
@@ -21,8 +27,10 @@ impl<T> IndexMut<usize> for DynamicStorage<T> {
     }
 }
 
-impl<T> NdArrayBase for DynamicStorage<T> {
+impl<T: Add<Output = T>> NdArrayBase for DynamicStorage<T> {
     type Value = T;
+    type Scalar = <Self as ScalarType>::Scalar;
+    type Mask = ();
     type Iter<'a>
     where
         T: 'a,
@@ -40,6 +48,10 @@ impl<T> NdArrayBase for DynamicStorage<T> {
         }
     }
 
+    fn len(&self) -> usize {
+        self.data.len()
+    }
+
     fn iter(&self) -> Self::Iter<'_> {
         self.data.iter()
     }
@@ -50,5 +62,14 @@ impl<T> NdArrayBase for DynamicStorage<T> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.data.into_iter()
+    }
+
+    fn add(self, other: Self) -> Self where Self::Value: Copy + Add<Output=Self::Value> {
+        Self {
+            data: self.data.into_iter().zip(other.into_iter()).map(|(a, b)| {
+                a + b
+            }).collect(),
+            _marker: Default::default()
+        }
     }
 }

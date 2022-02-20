@@ -73,3 +73,14 @@ impl<T: Add<Output = T>> NdArrayBase for DynamicStorage<T> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::core::{DynamicStorage, NdArrayBase};
+
+    #[test]
+    fn dynamic_storage_add() {
+        let mut a: DynamicStorage<f32> = DynamicStorage::new();
+        let mut b: DynamicStorage<f32> = DynamicStorage::new();
+    }
+}

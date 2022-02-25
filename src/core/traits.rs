@@ -1,19 +1,5 @@
 use std::ops::{Add, Index, IndexMut};
 
-pub trait ArrayStorage<T> {
-    type StorageVariant: NdArrayBase<Value = T>;
-}
-
-pub trait NdArrayAdd<Rhs = Self> {
-    type Value;
-    type Output;
-
-    fn add(self, other: Rhs) -> Self where Self::Value: Copy + Add<Output = Self::Value>;
-    // fn add_ref(&self, other: &Self) -> Self where Self::Value: Copy + Add<Output = Self::Value>;
-    // fn add_val_ref(self, other: Self) -> Self where Self::Value: Copy + Add<Output = Self::Value>;
-    // fn add_ref_val(&self, other: Self) -> Self where Self::Value: Copy + Add<Output = Self::Value>;
-}
-
 pub trait NdArrayBaseOps {
     // fn splat(s: Value) -> Self;
 
@@ -91,7 +77,9 @@ pub trait NdArrayBase:
 
     fn into_iter(self) -> Self::IntoIter;
 
-    fn add(self, other: Self) -> Self where Self::Value: Copy + Add<Output = Self::Value>;
+    fn add(self, other: Self) -> Self
+    where
+        Self::Value: Copy + Add<Output = Self::Value>;
     // fn add_ref(&self, other: &Self) -> Self where Self::Value: Copy + Add<Output = Self::Value>;
     // fn add_val_ref(self, other: Self) -> Self where Self::Value: Copy + Add<Output = Self::Value>;
     // fn add_ref_val(&self, other: Self) -> Self where Self::Value: Copy + Add<Output = Self::Value>;
